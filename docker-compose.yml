@@ -1,9 +1,25 @@
+version: '3'                                                                                       
 services:
-  docs:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 5432:5432
-    volumes:
-      - ./:/app
+      - 8000:8000
+    depends_on:
+      - db
+    networks:
+      - myNetwork
+  db:
+    image: timescale/timescaledb-ha:pg14-latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=example
+    networks:
+      - myNetwork
+networks:
+  myNetwork:
+    driver: bridge
