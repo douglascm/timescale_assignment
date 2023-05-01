@@ -178,6 +178,10 @@ Testing is supplied for the main functionalities of the project, as well as an i
 * test_save.py: tests the download of a file from the an URL
 * test_write.py: tests the method to push data into the timescale database. It pushes data into the test table, truncating it before.
 
+## Final Notes
+
+I started the project cloning the [getting-started](https://github.com/docker/getting-started.git) from docker to setup files faster but ended up with excessive amounts of commits and unecessary files. File whichI had to remove later
+
 
 
 
