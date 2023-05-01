@@ -69,6 +69,10 @@ app
         files
         ___init.py
     package.json
+test
+    files
+        test.csv
+    test_XXX.csv
 .dockerignore
 .gitignore
 build.sh
@@ -86,6 +90,7 @@ A description of each noteworthy file:
 * docker-compose.yml: contains instrunctions for mounting volumes, setting up a shared network, building services (Dockerfiles, ports, dependencies and env variables). The timescale docker image is setup on the db service, it uses the `timescale/timescaledb-ha:pg14-latest` image.
 * requirements.txt: contains the addon packages required for the project, read by pip on the image build step.
 * Dockerfile: contains build instrucitons for docker to create a custom image with requirements (requirements.txt)
+* text_XXX.py: contains the code for functionality tests, detailed below
 * main.py: contains the code for the project, detailed below
 
 ## Main.py
