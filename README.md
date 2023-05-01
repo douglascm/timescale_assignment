@@ -172,11 +172,11 @@ By following these steps, I would set up a solution that allows me to upload dat
 
 Testing is supplied for the main functionalities of the project, as well as an integration test of the main script for a sample of six months. The files are:
 
-    * test_main: for the integration of all functionas while running a sample from 2022-08 up to 2022-12. It pushes data into the test table, truncating it before.
-    * test_percentile: tests the percentile query for the desired amount.
-    * test_query: tests the hability to connect to the timescale db and return results from the cursor.
-    * test_save.py: tests the download of a file from the an URL
-    * test_write.py: tests the method to push data into the timescale database. It pushes data into the test table, truncating it before.
+* test_main: for the integration of all functionas while running a sample from 2022-08 up to 2022-12. It pushes data into the test table, truncating it before.
+* test_percentile: tests the percentile query for the desired amount.
+* test_query: tests the hability to connect to the timescale db and return results from the cursor.
+* test_save.py: tests the download of a file from the an URL
+* test_write.py: tests the method to push data into the timescale database. It pushes data into the test table, truncating it before.
 
 
 
