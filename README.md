@@ -1,7 +1,7 @@
 # Timescale DB data ingestion assignment
 
 This guide explain the step by step process employed for the assignment provided. Its main objective is to import data from
-[https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page][NYC “Yellow Taxi” Trips] and push it to a timescaledb service.
+[NYC “Yellow Taxi” Trips](https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page) and push it to a timescaledb service.
 The service chosen for this assignment was to use a docker image within the same project docker network. This way we can have an all-in-one
 solution for the project.
 
@@ -10,7 +10,7 @@ solution for the project.
 ### Prerequisite
 
 * Install Python
-* [Install git] (https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+* [Install git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 * Create new project folder
     * Create a new empty gitlab project [here](https://github.com/new)
     * Navigate on terminal to user/developer
@@ -81,11 +81,12 @@ requirements.txt
 ```
 
 A description of each noteworthy file:
-    * devcontainer.json: contains isntructions for building the containers
-    * docker-compose.yml: contains instrunctions for mounting volumes, setting up a shared network, building services (Dockerfiles, ports, dependencies and env variables). The timescale docker image is setup on the db service, it uses the `timescale/timescaledb-ha:pg14-latest` image.
-    * requirements.txt: contains the addon packages required for the project, read by pip on the image build step.
-    * Dockerfile: contains build instrucitons for docker to create a custom image with requirements (requirements.txt)
-    * main.py: contains the code for the project, detailed below
+
+* devcontainer.json: contains isntructions for building the containers
+* docker-compose.yml: contains instrunctions for mounting volumes, setting up a shared network, building services (Dockerfiles, ports, dependencies and env variables). The timescale docker image is setup on the db service, it uses the `timescale/timescaledb-ha:pg14-latest` image.
+* requirements.txt: contains the addon packages required for the project, read by pip on the image build step.
+* Dockerfile: contains build instrucitons for docker to create a custom image with requirements (requirements.txt)
+* main.py: contains the code for the project, detailed below
 
 ## Main.py
 
@@ -140,15 +141,15 @@ This concludes step 1 and 2 from the assignment. As for step 3 the next section 
 
 ## Salesforce Architecture
 
-"""
-Another request we have is to upload that information to another system daily. We need a solution that allows us to push some information into our Salesforce so Sales, Finance, and Marketing can make better decisions.
-    1 We need to have a daily dump of the trips into Salesforce.
-    2 We should avoid duplicates and have a clear way to backfill if needed.
-"""
+> Another request we have is to upload that information to another system daily. We need a solution that allows us to push some information into our Salesforce so Sales, Finance, and Marketing can make better decisions.
+>
+>    1 We need to have a daily dump of the trips into Salesforce.
+>
+>    2 We should avoid duplicates and have a clear way to backfill if needed.
 
 To achieve the requirement of uploading information to Salesforce on a daily basis and avoiding duplicates, I would follow these steps:
 
-I would start by setting up a connection between the application and Salesforce. For this I would use the Salesforce API to connect the application to Salesforce. The python package simple_salesforce can achieve this, it can query, manage records, CRUD Metadata API Calls, File Based Metadata API Calls, Upsert, Bulk, pandas resourcers, among other useful features.
+I would start by setting up a connection between the application and Salesforce. For this I would use the Salesforce API to connect the application to Salesforce. The python package [simple_salesforce](https://pypi.org/project/simple-salesforce/) can achieve this, it can query, manage records, CRUD Metadata API Calls, File Based Metadata API Calls, Upsert, Bulk, pandas resourcers, among other useful features.
 
 Next, Airflow would be configured to extract the data from the source system and load it into Salesforce using the SalesforceHook provided by the Salesforce plugin for Airflow.
 

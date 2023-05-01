@@ -119,19 +119,19 @@ def test_main():
 
         #%% Aggregate that rolls up stats on passenger count and fare amount by pickup location. Leverages created indexes.
         main.query("""
-            CREATE MATERIALIZED VIEW yellow_taxi_trips_pickup_loc
-            WITH (timescaledb.continuous) AS
-            SELECT
-                pulocationid,
-                sum(passenger_count) as sum_pax,
-                max(passenger_count) AS high_pax,
-                sum(fare_amount) as sum_fare,
-                max(fare_amount) AS max_fare,
-                min(fare_amount) AS low_fare
-            FROM yellow_taxi_trips ytt
-            GROUP BY pulocationid WITH NO DATA;
-            REFRESH MATERIALIZED VIEW yellow_taxi_trips_pickup_loc;
-            """)
+        CREATE MATERIALIZED VIEW IF NOT EXISTS yellow_taxi_trips_pickup_loc
+        WITH (timescaledb.continuous) AS
+        SELECT
+            pulocationid,
+            time_bucket(INTERVAL '1 day', tpep_pickup_datetime) as bucket,
+            sum(passenger_count) as sum_pax,
+            max(passenger_count) AS high_pax,
+            sum(fare_amount) as sum_fare,
+            max(fare_amount) AS max_fare,
+            min(fare_amount) AS low_fare
+        FROM yellow_taxi_trips ytt
+        GROUP BY pulocationid, bucket WITH DATA;
+        """,autocommit=True)
     except Exception as err:
         print(err)
 

@@ -97,8 +97,9 @@ def write(table,df,write_method='psycopg2',spark=None):
     else: 
         print('Invalid write method.')
 
-def query(sql,mode='execute'):
+def query(sql,mode='execute',autocommit=False):
     pg_conn = psycopg2.connect(os.environ.get('PSYCOPG2_JDBC_URL'))
+    pg_conn.autocommit = autocommit
     cur = pg_conn.cursor()
     try:
         cur.execute(sql)
@@ -207,7 +208,7 @@ for i, t in enumerate(zip(ycabUrls,ycabFnames)):
     
 print("Upload duration: {} seconds".format(time.time() - start_time_upload))
 
-#%% Creates index for assignment tasks
+#%% Creates index for assignment tasks, after bulk loading
 query("CREATE INDEX IF NOT EXISTS ix_fname ON yellow_taxi_trips (filename);")
 query("CREATE INDEX IF NOT EXISTS ix_trip_distance ON yellow_taxi_trips (trip_distance);")
 query("CREATE INDEX IF NOT EXISTS ix_trip_location ON yellow_taxi_trips (pulocationid);")
@@ -220,20 +221,20 @@ df = query("""
         select percentile_cont(0.9) within group (order by trip_distance) 
         from yellow_taxi_trips
     ) LIMIT 1000000
-    """,method='query')
+    """,mode='query')
 
 #%% Aggregate that rolls up stats on passenger count and fare amount by pickup location. Leverages created indexes.
 query("""
-    CREATE MATERIALIZED VIEW yellow_taxi_trips_pickup_loc
+    CREATE MATERIALIZED VIEW IF NOT EXISTS yellow_taxi_trips_pickup_loc
     WITH (timescaledb.continuous) AS
     SELECT
         pulocationid,
+        time_bucket(INTERVAL '1 day', tpep_pickup_datetime) as bucket,
         sum(passenger_count) as sum_pax,
         max(passenger_count) AS high_pax,
         sum(fare_amount) as sum_fare,
         max(fare_amount) AS max_fare,
         min(fare_amount) AS low_fare
     FROM yellow_taxi_trips ytt
-    GROUP BY pulocationid WITH NO DATA;
-    REFRESH MATERIALIZED VIEW yellow_taxi_trips_pickup_loc;
-    """)
+    GROUP BY pulocationid, bucket WITH DATA;
+    """,autocommit=True)
