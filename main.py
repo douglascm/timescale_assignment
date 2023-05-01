@@ -117,6 +117,7 @@ cur.execute("ALTER TABLE yellow_taxi_trips DISABLE TRIGGER ALL")
 pg_conn.commit()
 cur.close()
 
+
 appName = "load_parquet"
 master = "local"
 
