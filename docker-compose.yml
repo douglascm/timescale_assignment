@@ -12,6 +12,7 @@ services:
       - myNetwork
     volumes:
       - ./:/app
+    env_file: .env
   db:
     image: timescale/timescaledb-ha:pg14-latest
     ports:
