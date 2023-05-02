@@ -59,7 +59,7 @@ Navigate to project folder and run `code .` opening vscode.
 ### Create the image locally and run
 Run `docker-compose build --no-cache`.
 
-Run `docker-compose -p timescale_assignment up --build` on the current project folder. The project will start running, as well as tests. 
+Run `docker-compose -p timescale_assignment up --build` on the current project folder. The project tests will start running, then the app itself. 
 
 Run `docker run -it --entrypoint=/bin/bash timescale_assignment` to navigate files in the continer.
 
@@ -104,7 +104,7 @@ A for loop is implemented in order to go through all files in the NYC taxi datab
 
 ### Writing into timescale db
 
-In each of the for loops when a .csv file is created, psycopg2 can leverage the COPY functionality for one the fastest ways to push data into timescaledb, about 3-5x faster than sparks own postgresql writing capabilities. Hypertables do not support `SET UNLOGGED` and `DISABLE TRIGGER ALL` for faster table insertion.
+In each of the for loops when a .csv file is created, psycopg2 can leverage the COPY functionality for one the fastest ways to push data into timescaledb, about 3-5x faster than sparks own postgresql writing capabilities. Hypertables do not support `SET UNLOGGED` and `DISABLE TRIGGER ALL` for faster table insertion. There is an option to skip or replace already imported files. The parameter is `write_db_method` set as default for 'Skip' for this assignment. For dev container purposes there is also an `mode_input` boolean in order to change years import range.
 
 ### Setting up indexes, hypertables
 
@@ -175,7 +175,7 @@ By following these steps, a solution would exist that allows the upload of data 
 Testing is supplied for the main functionalities of the project. The file containing the test functions is unde `test/test_functions.py`. Docker compose builds an image equal to production and runs pytest which itself runs all assertions for functions and returns any errors. The file `docker-compose.yml` contains the instructions passed to docker-compose in order to build the test image and run the tests, being:
 
 ```
-app-tests:
+app-test:
     container_name: timecale_assignment_test
     image: timecale_assignment_test:latest
     build:
@@ -196,20 +196,29 @@ app-tests:
 ### Pytest output
 
 ```
+============================= test session starts ==============================
+platform linux -- Python 3.10.6, pytest-7.3.1, pluggy-1.0.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /app
+plugins: reportlog-0.3.0
+collecting ... collected 4 items
 
+test/test_functions.py::test_save PASSED                                 [ 25%]
+test/test_functions.py::test_write PASSED                                [ 50%]
+test/test_functions.py::test_query PASSED                                [ 75%]
+test/test_functions.py::test_percentile PASSED                           [100%]
+
+----------------- generated xml file: /app/reports/result.xml ------------------
+-------------------- generated report log file: result.log ---------------------
+======================== 4 passed in 174.58s (0:02:54) =========================
 ```
 
 ## Final Notes
 
 I started the project cloning the [getting-started](https://github.com/docker/getting-started.git) from docker to setup files faster but ended up with excessive amounts of commits and unecessary files. File which I had to remove later.
 
-Test runs of 2 years periods, 2021-2022 completed under 30 minutes, showing satisfactory performance. Estimated performance for the entire dataset being in the range of 4-6 hours (local setup).
+Test runs of 3 years periods, 2020-2022 completed under 1h, showing satisfactory performance. Estimated performance for the entire dataset being in the range of 4-6 hours (local setup). In order to change the import from as early as 2009 it only requires to change `years=[2020,2023]` into `years=[2009,2023]` in the main.py file.
 
 ## Closing Comments
 
 I was thankful for being given the opportunity to participate in this assignment.
-
-
-
-
-    

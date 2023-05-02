@@ -29,5 +29,8 @@ COPY . .
 EXPOSE 8001
 EXPOSE 5432
 
+HEALTHCHECK --interval=5m --timeout=3s \
+  CMD curl -f http://host.docker.internal/ || exit 1
+
 CMD ["pytest", "-v", "/app/test", "--junitxml=reports/result.xml", "--report-log=result.log"]
 #CMD tail -f /dev/null

@@ -140,6 +140,7 @@ def query(sql,mode='execute',autocommit=False):
             df = print('Query executed successfully...')
     except Exception as err:
         df = print_psycopg2_exception(err)
+    pg_conn.commit()    
     cur.close()
     pg_conn.close()
     return df
@@ -176,7 +177,7 @@ if input_mode:
         years = ask_range()
         yn_range = input(f'Files from {years[0]} up to {years[1]}. Is this range of years correct? Yes or No')
 else:
-    years=[2021,2023]
+    years=[2020,2023]
 
 print(f'\nPulling data from Range {years[0]}-{years[1]}...')
 
