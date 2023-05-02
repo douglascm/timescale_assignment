@@ -14,7 +14,7 @@ spark = SparkSession.builder \
     .config("spark.jars", "/opt/spark/jars/postgresql-42.2.5.jar") \
     .getOrCreate()
 
-def test_save(url='https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet',filename='/app/test/files/test.parquet'):
+def test_save(url='https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2022-12.parquet',filename='/app/test/files/test.parquet'):
     save(url,filename)
     assert os.path.isfile(filename), "Error saving file"
 
@@ -51,13 +51,15 @@ def test_write(write_method='psycopg2'):
     df = spark.read.parquet('test/files/test.parquet')
     if 'filename' not in df.columns:
         df = df.withColumn('filename',psf.lit('23-01'))
-
-    res = write('test','test',write_method)
-    assert res, "Error writing file"
     
-def test_query(sql="select count(*) from test",mode='execute'):
+    res = write('test',df,write_method)
+
+    assert res=='Success', "Error writing file"
+    
+def test_query(sql="select * from test",mode='query'):
     df = query(sql,mode)
-    assert isinstance(df,pd.DataFrame), "Error querying file"
+    
+    assert isinstance(df,pd.DataFrame), "Error querying table tests"
 
 def test_percentile(percentile=0.9):
     df = query(f"""
@@ -66,6 +68,7 @@ def test_percentile(percentile=0.9):
     select percentile_cont({percentile}) within group (order by trip_distance) 
     from test
     )""",mode='query')
+    
     assert isinstance(df,pd.DataFrame), "Error querying percentiles"
 
 #%% Run tests

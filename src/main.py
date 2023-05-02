@@ -7,6 +7,7 @@ import time
 import psycopg2
 import pandas as pd
 import pyspark.sql.functions as psf
+from tabulate import tabulate
 from pyspark.sql import SparkSession
 
 def delete_indexes(table_name):
@@ -55,6 +56,7 @@ def execute_copy(fileName,table_name,conn_string):
     with open(fileName, 'r') as f:
         cur.copy_from(f, table_name, sep=',', null='')    
     con.commit()
+    cur.close()
     con.close()
     
 def reporthook(count, block_size, total_size):
@@ -122,10 +124,10 @@ def write(table,df,write_method='psycopg2',spark=None):
             print("psycopg2 COPY duration: {} seconds".format(time.time() - start_time))
         else: 
             print('Invalid write method.')
-        return True
+        return 'Success'
     except Exception as err:
-        print(err)
-        return False
+        print(str(err))
+        return 'Failure'
 
 def query(sql,mode='execute',autocommit=False):
     pg_conn = psycopg2.connect(os.environ.get('PSYCOPG2_JDBC_URL'))

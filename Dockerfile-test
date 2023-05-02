@@ -29,6 +29,5 @@ COPY . .
 EXPOSE 8001
 EXPOSE 5432
 
-CMD ["pytest", "-v", "/app/test", "--junitxml=reports/result.xml"]
-
+CMD ["pytest", "-v", "/app/test", "--junitxml=reports/result.xml", "--report-log=result.log"]
 #CMD tail -f /dev/null

@@ -1,38 +1,114 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="4" time="183.625" timestamp="2023-05-02T14:56:37.996654" hostname="7bc3ecda8178"><testcase classname="test.test_functions" name="test_save" time="9.381" /><testcase classname="test.test_functions" name="test_write" time="0.002"><failure message="UnboundLocalError: local variable 'spark' referenced before assignment">write_method = 'psycopg2'
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="4" time="184.383" timestamp="2023-05-02T15:38:44.610363" hostname="09e0a6228a7e"><testcase classname="test.test_functions" name="test_save" time="9.028" /><testcase classname="test.test_functions" name="test_write" time="4.856"><failure message="AttributeError: module 'pandas' has no attribute 'display'">write_method = 'psycopg2'
 
-    .master("local") \
-&gt;   .appName("load_parquet") \
-    .config("spark.jars", "/opt/spark/jars/postgresql-42.2.5.jar") \
-    .getOrCreate()
-E   UnboundLocalError: local variable 'spark' referenced before assignment
-
-test/test_functions.py:17: UnboundLocalError</failure></testcase><testcase classname="test.test_functions" name="test_query" time="0.044"><failure message="AssertionError: Error querying file&#10;assert False&#10; +  where False = isinstance(None, &lt;class 'pandas.core.frame.DataFrame'&gt;)&#10; +    where &lt;class 'pandas.core.frame.DataFrame'&gt; = pd.DataFrame">sql = 'select count(*) from test', mode = 'execute'
-
-    def test_percentile(percentile=0.9):
-        df = query(f"""
-&gt;       select * from test ytt
-        where trip_distance &gt;= (
-        select percentile_cont({percentile}) within group (order by trip_distance)
-        from test
-        )""",mode='query')
-E       AssertionError: Error querying file
-E       assert False
-E        +  where False = isinstance(None, &lt;class 'pandas.core.frame.DataFrame'&gt;)
-E        +    where &lt;class 'pandas.core.frame.DataFrame'&gt; = pd.DataFrame
-
-test/test_functions.py:62: AssertionError</failure></testcase><testcase classname="test.test_functions" name="test_percentile" time="0.037"><failure message="AssertionError: Error querying percentiles&#10;assert False&#10; +  where False = isinstance(None, &lt;class 'pandas.core.frame.DataFrame'&gt;)&#10; +    where &lt;class 'pandas.core.frame.DataFrame'&gt; = pd.DataFrame">percentile = 0.9
-
-        select percentile_cont({percentile}) within group (order by trip_distance)
-        from test
-        )""",mode='query')
-        assert isinstance(df,pd.DataFrame), "Error querying percentiles"
+    def test_write(write_method='psycopg2'):
     
-    #%% Run tests
-    if __name__ == "__main__":
-&gt;       test_save()
-E       AssertionError: Error querying percentiles
-E       assert False
-E        +  where False = isinstance(None, &lt;class 'pandas.core.frame.DataFrame'&gt;)
-E        +    where &lt;class 'pandas.core.frame.DataFrame'&gt; = pd.DataFrame
+        table_create_sql = f'''
+            CREATE TABLE IF NOT EXISTS test (
+                VendorId bigint,
+                tpep_pickup_datetime  timestamp,
+                tpep_dropoff_datetime timestamp,
+                passenger_count decimal,
+                trip_distance decimal,
+                RatecodeID decimal,
+                store_and_fwd_flag char,
+                PULocationID int,
+                DOLocationID int,
+                payment_type int,
+                fare_amount decimal,
+                extra decimal,
+                mta_tax decimal,
+                tip_amount decimal,
+                tolls_amount decimal,
+                improvement_surcharge decimal,
+                total_amount decimal,
+                congestion_surcharge decimal,
+                airport_fee decimal,
+                filename char(5)
+                )
+            '''
+    
+        query(table_create_sql)
+        query("truncate table test;")
+    
+        df = spark.read.parquet('test/files/test.parquet')
+        if 'filename' not in df.columns:
+            df = df.withColumn('filename',psf.lit('23-01'))
+    
+&gt;       pd.display(df.head(5))
 
-test/test_functions.py:71: AssertionError</failure></testcase></testsuite></testsuites>
+test/test_functions.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'display'
+
+    def __getattr__(name):
+        import warnings
+    
+        if name in __deprecated_num_index_names:
+            warnings.warn(
+                f"pandas.{name} is deprecated "
+                "and will be removed from pandas in a future version. "
+                "Use pandas.Index with the appropriate dtype instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            from pandas.core.api import Float64Index, Int64Index, UInt64Index
+    
+            return {
+                "Float64Index": Float64Index,
+                "Int64Index": Int64Index,
+                "UInt64Index": UInt64Index,
+            }[name]
+        elif name == "datetime":
+            warnings.warn(
+                "The pandas.datetime class is deprecated "
+                "and will be removed from pandas in a future version. "
+                "Import from datetime module instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+    
+            from datetime import datetime as dt
+    
+            return dt
+    
+        elif name == "np":
+    
+            warnings.warn(
+                "The pandas.np module is deprecated "
+                "and will be removed from pandas in a future version. "
+                "Import numpy directly instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            import numpy as np
+    
+            return np
+    
+        elif name in {"SparseSeries", "SparseDataFrame"}:
+            warnings.warn(
+                f"The {name} class is removed from pandas. Accessing it from "
+                "the top-level namespace will also be removed in the next version.",
+                FutureWarning,
+                stacklevel=2,
+            )
+    
+            return type(name, (), {})
+    
+        elif name == "SparseArray":
+    
+            warnings.warn(
+                "The pandas.SparseArray class is deprecated "
+                "and will be removed from pandas in a future version. "
+                "Use pandas.arrays.SparseArray instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            from pandas.core.arrays.sparse import SparseArray as _SparseArray
+    
+            return _SparseArray
+    
+&gt;       raise AttributeError(f"module 'pandas' has no attribute '{name}'")
+E       AttributeError: module 'pandas' has no attribute 'display'
+
+/usr/local/lib/python3.10/dist-packages/pandas/__init__.py:264: AttributeError</failure></testcase><testcase classname="test.test_functions" name="test_query" time="0.084" /><testcase classname="test.test_functions" name="test_percentile" time="0.073" /></testsuite></testsuites>
