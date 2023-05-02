@@ -14,36 +14,15 @@ solution for the project.
 * Create a new project folder
     * Create a new empty Gitlab project [here](https://github.com/new)
     * Navigate on the terminal to user/developer
-    * Create a new folder and navigate into it, then run `git init --initial-branch=<default-branch>` on the terminal.
-    * Show hidden files, navigate to .git folder, your config file should be:
+    * Create a new folder and navigate into it, then run:
     ```
-    [core]
-        repositoryformatversion = 0
-        filemode = true
-        bare = false
-        logallrefupdates = true
-        ignorecase = true
-        precomposeunicode = true
-	sshCommand = "ssh -i ~/.ssh/personal" <assumes you have correcly setup ssh keys on user folder>
-    [remote "origin"]
-	url = [YOUR PROJECT GITLAB SSH LINK]
-	fetch = +refs/heads/*:refs/remotes/origin/*
-    [user]
-    	name = [YOUR USERNAME]
-    	email = [YOUR EMAIL]
-    	signingkey= [YOUR SIGN IN KEY]
-    [github]
-  	    user = [YOUR GITHUB USER]
-    [branch "master"]
-	    remote = origin
-	    merge = refs/heads/master
-    [branch "main"]
-	    remote = origin
-	    merge = refs/heads/main
-    [pull]
-	    rebase = false
+    git init
+    git clone --bare https://github.com/douglascm/timescale_assignment
+    cd timescale_assignment.git`
+    git push --mirror https://github.com/USER/REPO.git <your repo link>
+    cd ..
+    rm -rf timescale_assignment.git
     ```
-    * Run `git clone git@github.com:douglascm/timescale_assignment.git .`
 
 ## Development with VScode and devcontainer.json
 
