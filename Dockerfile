@@ -13,11 +13,21 @@ RUN pip3 install -r requirements.txt
 
 ADD . /opt/spark/jars
 
+# SET SPARK ENV VARIABLES
 ENV CLASSPATH /opt/spark/jars/postgresql-42.2.5.jar
+
+# SET PYSPARK VARIABLES
+ENV PYTHONPATH="${SPARK_HOME}/python/:$PYTHONPATH"
+ENV PYTHONSTARTUP=main.py
+
+ADD /src/main.py .
 
 WORKDIR /app
 
-COPY /app /app
-COPY /test /test
+COPY . . 
 
+EXPOSE 8000
 EXPOSE 5432
+
+CMD ["python3", "/app/src/main.py"]
+

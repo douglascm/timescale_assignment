@@ -1,6 +1,8 @@
 version: '3'                                                                                       
 services:
   app:
+    container_name: timecale_assignment
+    image: timecale_assignment:latest
     build:
       context: .
       dockerfile: Dockerfile

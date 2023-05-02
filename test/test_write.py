@@ -1,7 +1,7 @@
 import pandas as pd
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as psf
-from main import write,query,save
+from src.main import write,query,save
 
 def test_write(write_method='psycopg2'):
     if spark == None:

@@ -57,29 +57,27 @@ We can use Dockerfile for building our development environment as well as our pr
 Navigate to project folder and run `code .` opening vscode. 
 
 ### Create the image locally and run
-Run `docker-compose up --build` on the current project folder. Now open the project in Dev Container mode.
+Run `docker-compose build --no-cache` and `docker-compose -p timescale_assignment up --build` on the current project folder. The project will start running. 
+Run `docker run -it --entrypoint=/bin/bash timescale_assignment` to navigate files in the continer.
 
 ## Project Layout
 
 ```
 .devcontainer
     devcontainer.json
-app
-    src
-        files
-        ___init.py
-    package.json
+src
+    files
+    main.py
+    ___init.py
 test
     files
-        test.csv
-    test_XXX.csv
+    test_XXX.py
 .dockerignore
 .gitignore
 build.sh
 docker-compose.yml
 Dockerfile
 LICENSE
-main.py
 README.md
 requirements.txt
 ```
@@ -110,6 +108,7 @@ In each of the for loops when a .csv file is created, psycopg2 can leverage the 
 After data being pushed into the database, 3 indexes are created helping speed up query results and data retrieval from the database.
 
 ```
+CREATE INDEX IF NOT EXISTS ix_fname ON yellow_taxi_trips (filename); --facilitates the backfilling of data
 CREATE INDEX IF NOT EXISTS ix_trip_distance ON yellow_taxi_trips (trip_distance);
 CREATE INDEX IF NOT EXISTS ix_trip_location ON yellow_taxi_trips (pulocationid);
 CREATE INDEX IF NOT EXISTS ix_passenger_count_fare_amount_pulocationid ON yellow_taxi_trips (passenger_count, fare_amount, pulocationid);
@@ -128,18 +127,18 @@ select * from yellow_taxi_trips ytt
 The next step was to create a continuous aggregate that rolls up stats on passenger count and fare amount by pickup location. The following script creates a materalized view than can leverage the hypertables capabilities in order to do continues aggregates for specific dimensions:
 
 ```
-CREATE MATERIALIZED VIEW yellow_taxi_trips_pickup_loc
+CREATE MATERIALIZED VIEW IF NOT EXISTS yellow_taxi_trips_pickup_loc
     WITH (timescaledb.continuous) AS
     SELECT
         pulocationid,
+        time_bucket(INTERVAL '1 day', tpep_pickup_datetime) as bucket,
         sum(passenger_count) as sum_pax,
         max(passenger_count) AS high_pax,
         sum(fare_amount) as sum_fare,
         max(fare_amount) AS max_fare,
         min(fare_amount) AS low_fare
     FROM yellow_taxi_trips ytt
-    GROUP BY pulocationid WITH NO DATA;
-REFRESH MATERIALIZED VIEW yellow_taxi_trips_pickup_loc;
+    GROUP BY pulocationid, bucket WITH DATA;
 ```
 
 This concludes step 1 and 2 from the assignment. As for step 3 the next section explains the architecture and the solutions
@@ -172,7 +171,6 @@ By following these steps, I would set up a solution that allows me to upload dat
 
 Testing is supplied for the main functionalities of the project, as well as an integration test of the main script for a sample of six months. The files are:
 
-* test_main: for the integration of all functionas while running a sample from 2022-08 up to 2022-12. It pushes data into the test table, truncating it before.
 * test_percentile: tests the percentile query for the desired amount.
 * test_query: tests the hability to connect to the timescale db and return results from the cursor.
 * test_save.py: tests the download of a file from the an URL
@@ -180,7 +178,11 @@ Testing is supplied for the main functionalities of the project, as well as an i
 
 ## Final Notes
 
-I started the project cloning the [getting-started](https://github.com/docker/getting-started.git) from docker to setup files faster but ended up with excessive amounts of commits and unecessary files. File whichI had to remove later
+I started the project cloning the [getting-started](https://github.com/docker/getting-started.git) from docker to setup files faster but ended up with excessive amounts of commits and unecessary files. File which I had to remove later.
+
+## Closing Comments
+
+I found interesting trying different methods of read/write to improve performance and stability.
 
 
 
