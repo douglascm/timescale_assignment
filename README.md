@@ -1,7 +1,7 @@
 # Timescale DB data ingestion assignment
 
-This guide explain the step by step process employed for the assignment provided. Its main objective is to import data from
-[NYC “Yellow Taxi” Trips](https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page) and push it to a timescaledb service.
+This guide explains the step-by-step process employed for the assignment provided. Its main objective is to import data from
+[NYC “Yellow Taxi” Trips](https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page) and push it to a TimescaleDB service.
 The service chosen for this assignment was to use a docker image within the same project docker network. This way we can have an all-in-one
 solution for the project.
 
@@ -11,9 +11,9 @@ solution for the project.
 
 * Install Python
 * [Install git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-* Create new project folder
-    * Create a new empty gitlab project [here](https://github.com/new)
-    * Navigate on terminal to user/developer
+* Create a new project folder
+    * Create a new empty Gitlab project [here](https://github.com/new)
+    * Navigate on the terminal to user/developer
     * Create a new folder and navigate into it, then run `git init --initial-branch=<default-branch>` on the terminal.
     * Show hidden files, navigate to .git folder, your config file should be:
     ```
@@ -46,22 +46,22 @@ solution for the project.
     * Run `git clone git@github.com:douglascm/timescale_assignment.git .`
     * Run `git push -u origin <default-branch>`
 
-## Development with vscode and devcontainer.json
+## Development with VScode and devcontainer.json
 
-We can use Dockerfile for building our development environment as well as our prod environment, but first we must install the prerequisites.
+We can use Dockerfile for building our development environment as well as our prod environment, but first, we must install the prerequisites.
 
 * [Install Docker](https://docs.docker.com/desktop/install/windows-install/)
 * [Install vscode](https://code.visualstudio.com/download)
 * [Install vscode: Remote Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 
-Navigate to project folder and run `code .` opening vscode. 
+Navigate to the project folder and run `code .` opening VScode. 
 
 ### Create the image locally and run
 Run `docker-compose build --no-cache`.
 
 Run `docker-compose -p timescale_assignment up --build` on the current project folder. The project tests will start running, then the app itself. 
 
-Run `docker run -it --entrypoint=/bin/bash timescale_assignment` to navigate files in the continer.
+Run `docker run -it --entrypoint=/bin/bash timescale_assignment` to navigate files in the container.
 
 ## Project Layout
 
@@ -80,6 +80,7 @@ test
 build.sh
 docker-compose.yml
 Dockerfile
+Dockerfile-test
 LICENSE
 README.md
 requirements.txt
@@ -87,12 +88,13 @@ requirements.txt
 
 A description of each noteworthy file:
 
-* devcontainer.json: contains isntructions for building the containers
-* docker-compose.yml: contains instrunctions for mounting volumes, setting up a shared network, building services (Dockerfiles, ports, dependencies and env variables). The timescale docker image is setup on the db service, it uses the `timescale/timescaledb-ha:pg14-latest` image.
-* requirements.txt: contains the addon packages required for the project, read by pip on the image build step.
-* Dockerfile: contains build instrucitons for docker to create a custom image with requirements (requirements.txt)
-* text_functions.py: contains the code for pytest functionality tests
-* main.py: contains the code for the project, detailed below
+* `devcontainer.json`: contains instructions for building the containers
+* `docker-compose.yml`: contains instructions for mounting volumes, setting up a shared network, building services (Dockerfiles, ports, dependencies, and env variables). The timescale docker image is set up on the db service, it uses the `timescale/timescaledb-ha:pg14-latest` image.
+* `requirements.txt`: contains the addon packages required for the project, read by pip on the image build step.
+* `Dockerfile`: contains build instructions for docker to create a custom image with requirements (requirements.txt)
+* `Dockerfile-test`: contains build instructions for docker to create a custom image with requirements (requirements.txt) for pytest environment
+* `text_functions.py`: contains the code for `pytest` functionality tests
+* `main.py`: contains the code for the project, detailed below
 
 ## Main.py
 
@@ -100,15 +102,17 @@ This section explains the solution and the noteworthy decisions.
 
 ### Reading the data
 
-A for loop is implemented in order to go through all files in the NYC taxi database. The parquet files are downloaded into the container with the `urlretrieve` function from package `urllib.request`. Once a parquet file is downloaded, spark reads the data into a spark dataframe. Spark was selected in this step due to its df.write.csv method running 4x faster than pandas df.to_csv.
+A for loop is implemented to go through all files in the NYC taxi database. The parquet files are downloaded into the container with the `urlretrieve` function from package `urllib.request`. Once a parquet file is downloaded, spark reads the data into a spark dataframe. Spark was selected in this step due to its df.write.csv method running 4x faster than pandas df.to_csv.
 
 ### Writing into timescale db
 
-In each of the for loops when a .csv file is created, psycopg2 can leverage the COPY functionality for one the fastest ways to push data into timescaledb, about 3-5x faster than sparks own postgresql writing capabilities. Hypertables do not support `SET UNLOGGED` and `DISABLE TRIGGER ALL` for faster table insertion. There is an option to skip or replace already imported files. The parameter is `write_db_method` set as default for 'Skip' for this assignment. For dev container purposes there is also an `mode_input` boolean in order to change years import range.
+In each of the for loops when a .csv file is created, psycopg2 can leverage the COPY functionality for one the fastest ways to push data into timescaledb, about 3-5x faster than sparks own postgresql writing capabilities. Hypertables do not support `SET UNLOGGED` and `DISABLE TRIGGER ALL` for faster table insertion. 
+
+There is an option to skip or replace already imported files. The parameter is `write_db_method` set as default for 'Skip' for this assignment. For dev container purposes there is also an `input_mode` boolean that changes the years import range, `write_db_method`, described before, or whether to remove indexes before uploading data to table, parameter `del_index`, only working in `input_mode=True`.
 
 ### Setting up indexes, hypertables
 
-After data being pushed into the database, 3 indexes are created helping speed up query results and data retrieval from the database.
+After data is pushed into the database, 4 indexes are created to help speed up query results and data retrieval from the database.
 
 ```
 CREATE INDEX IF NOT EXISTS ix_fname ON yellow_taxi_trips (filename); --facilitates the backfilling of data
@@ -127,7 +131,7 @@ select * from yellow_taxi_trips ytt
         ) LIMIT 1000000 --limiting output for this assignment only
 ```
 
-The next step was to create a continuous aggregate that rolls up stats on passenger count and fare amount by pickup location. The following script creates a materalized view than can leverage the hypertables capabilities in order to do continues aggregates for specific dimensions:
+The next step was to create a continuous aggregate that rolls up stats on passenger count and fare amount by pickup location. The following script creates a materialized view that can leverage the hypertables capabilities to do continues aggregates for specific dimensions:
 
 ```
 CREATE MATERIALIZED VIEW IF NOT EXISTS yellow_taxi_trips_pickup_loc
@@ -144,7 +148,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS yellow_taxi_trips_pickup_loc
     GROUP BY pulocationid, bucket WITH DATA;
 ```
 
-This concludes step 1 and 2 from the assignment. As for step 3 the next section explains the architecture and the solutions
+This concludes Step 1 and 2 of the assignment. As for Step 3, the next section explains the architecture and the solutions
 
 ## Salesforce Architecture
 
@@ -156,7 +160,7 @@ This concludes step 1 and 2 from the assignment. As for step 3 the next section 
 
 To achieve the requirement of uploading information to Salesforce on a daily basis and avoiding duplicates, I would follow these steps:
 
-The project would start by setting up a connection between the application and Salesforce. For this I would use the Salesforce API to connect the application to Salesforce. The python package [simple_salesforce](https://pypi.org/project/simple-salesforce/) can achieve this, it can query, manage records, CRUD Metadata API Calls, File Based Metadata API Calls, Upsert, Bulk, pandas resourcers, among other useful features.
+The project would start by setting up a connection between the application and Salesforce. For this, I would use the Salesforce API to connect the application to Salesforce. The python package [simple_salesforce](https://pypi.org/project/simple-salesforce/) can achieve this, it can query, manage records, CRUD Metadata API Calls, File Based Metadata API Calls, Upsert, Bulk, pandas resources, among other useful features.
 
 Next, Airflow would be configured and the project to extract the data from the source system and load it into Salesforce using the SalesforceHook provided by the Salesforce plugin for Airflow.
 
@@ -215,9 +219,9 @@ test/test_functions.py::test_percentile PASSED                           [100%]
 
 ## Final Notes
 
-I started the project cloning the [getting-started](https://github.com/docker/getting-started.git) from docker to setup files faster but ended up with excessive amounts of commits and unecessary files. File which I had to remove later.
+I started the project cloning the [getting-started](https://github.com/docker/getting-started.git) from docker to set up files faster but ended up with excessive amounts of commits and unnecessary files. File which I had to remove later.
 
-Test runs of 3 years periods, 2020-2022 completed under 1h, showing satisfactory performance. Estimated performance for the entire dataset being in the range of 4-6 hours (local setup). In order to change the import from as early as 2009 it only requires to change `years=[2020,2023]` into `years=[2009,2023]` in the main.py file.
+Test runs of 3 years periods, 2020-2022 completed under 1h, showing satisfactory performance. Estimated performance for the entire dataset is in the range of 4-6 hours (local setup). In order to change the import from as early as 2009 it only requires to change `years=[2020,2023]` into `years=[2009,2023]` in the main.py file.
 
 ## Closing Comments
 
