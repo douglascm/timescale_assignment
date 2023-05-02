@@ -26,8 +26,9 @@ WORKDIR /app
 
 COPY . . 
 
-EXPOSE 8000
+EXPOSE 8001
 EXPOSE 5432
 
-#CMD ["python3", "/app/src/main.py"]
+CMD ["pytest", "-v", "/app/test", "--junitxml=reports/result.xml"]
 
+#CMD tail -f /dev/null

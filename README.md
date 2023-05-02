@@ -63,8 +63,6 @@ Run `docker-compose -p timescale_assignment up --build` on the current project f
 
 Run `docker run -it --entrypoint=/bin/bash timescale_assignment` to navigate files in the continer.
 
-Run `docker build -t timescale_assignment --target test .` to build the testing container for unit function tests.
-
 ## Project Layout
 
 ```

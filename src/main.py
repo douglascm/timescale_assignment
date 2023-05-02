@@ -87,40 +87,45 @@ def parquet2csv(df,path,filename):
     return print(f'{filename} saved into folder{path}')
 
 def write(table,df,write_method='psycopg2',spark=None):
-    if spark == None:
-        # Startup spark session
-        spark = SparkSession.builder \
-            .master("local") \
-            .appName("load_parquet") \
-            .config("spark.jars", "/opt/spark/jars/postgresql-42.2.5.jar") \
-            .getOrCreate()
-    
-    if write_method == 'spark':
-        # Write with spark (~150s per file)
-        start_time = time.time()
-        df.write.mode("append").jdbc(
-            url=os.environ.get('SPARK_JDBC_URL'),
-            table=table,
-            properties = {
-            'user': 'postgres',
-            'password': 'password',
-            'driver': 'org.postgresql.Driver',
-            'stringtype': 'unspecified'}
-        )
-        print("spark write duration: {} seconds".format(time.time() - start_time))
-    elif write_method=='psycopg2':
-        # Write through pandas and csv (~40s per file)
-        start_time = time.time()
-        # Writing dataframe to csv and renaming to readeble filename
-        parquet2csv(df,'/src/files/temp.dir/','yellow_taxi_trips.csv')
-        print("spark write csv duration: {} seconds".format(time.time() - start_time))
+    try:
+        if spark == None:
+            # Startup spark session
+            spark = SparkSession.builder \
+                .master("local") \
+                .appName("load_parquet") \
+                .config("spark.jars", "/opt/spark/jars/postgresql-42.2.5.jar") \
+                .getOrCreate()
         
-        start_time = time.time()
-        # With Postgresql COPY command and psycopg2 data is pushed into database table yellow_taxi_trips in conn_string
-        execute_copy('/src/files/temp.dir/yellow_taxi_trips.csv',table,os.environ.get('PSYCOPG2_JDBC_URL'))
-        print("psycopg2 COPY duration: {} seconds".format(time.time() - start_time))
-    else: 
-        print('Invalid write method.')
+        if write_method == 'spark':
+            # Write with spark (~150s per file)
+            start_time = time.time()
+            df.write.mode("append").jdbc(
+                url=os.environ.get('SPARK_JDBC_URL'),
+                table=table,
+                properties = {
+                'user': 'postgres',
+                'password': 'password',
+                'driver': 'org.postgresql.Driver',
+                'stringtype': 'unspecified'}
+            )
+            print("spark write duration: {} seconds".format(time.time() - start_time))
+        elif write_method=='psycopg2':
+            # Write through pandas and csv (~40s per file)
+            start_time = time.time()
+            # Writing dataframe to csv and renaming to readeble filename
+            parquet2csv(df,'/src/files/temp.dir/','yellow_taxi_trips.csv')
+            print("spark write csv duration: {} seconds".format(time.time() - start_time))
+            
+            start_time = time.time()
+            # With Postgresql COPY command and psycopg2 data is pushed into database table yellow_taxi_trips in conn_string
+            execute_copy('/src/files/temp.dir/yellow_taxi_trips.csv',table,os.environ.get('PSYCOPG2_JDBC_URL'))
+            print("psycopg2 COPY duration: {} seconds".format(time.time() - start_time))
+        else: 
+            print('Invalid write method.')
+        return True
+    except Exception as err:
+        print(err)
+        return False
 
 def query(sql,mode='execute',autocommit=False):
     pg_conn = psycopg2.connect(os.environ.get('PSYCOPG2_JDBC_URL'))

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="4" time="183.625" timestamp="2023-05-02T14:56:37.996654" hostname="7bc3ecda8178"><testcase classname="test.test_functions" name="test_save" time="9.381" /><testcase classname="test.test_functions" name="test_write" time="0.002"><failure message="UnboundLocalError: local variable 'spark' referenced before assignment">write_method = 'psycopg2'
+
+    .master("local") \
+&gt;   .appName("load_parquet") \
+    .config("spark.jars", "/opt/spark/jars/postgresql-42.2.5.jar") \
+    .getOrCreate()
+E   UnboundLocalError: local variable 'spark' referenced before assignment
+
+test/test_functions.py:17: UnboundLocalError</failure></testcase><testcase classname="test.test_functions" name="test_query" time="0.044"><failure message="AssertionError: Error querying file&#10;assert False&#10; +  where False = isinstance(None, &lt;class 'pandas.core.frame.DataFrame'&gt;)&#10; +    where &lt;class 'pandas.core.frame.DataFrame'&gt; = pd.DataFrame">sql = 'select count(*) from test', mode = 'execute'
+
+    def test_percentile(percentile=0.9):
+        df = query(f"""
+&gt;       select * from test ytt
+        where trip_distance &gt;= (
+        select percentile_cont({percentile}) within group (order by trip_distance)
+        from test
+        )""",mode='query')
+E       AssertionError: Error querying file
+E       assert False
+E        +  where False = isinstance(None, &lt;class 'pandas.core.frame.DataFrame'&gt;)
+E        +    where &lt;class 'pandas.core.frame.DataFrame'&gt; = pd.DataFrame
+
+test/test_functions.py:62: AssertionError</failure></testcase><testcase classname="test.test_functions" name="test_percentile" time="0.037"><failure message="AssertionError: Error querying percentiles&#10;assert False&#10; +  where False = isinstance(None, &lt;class 'pandas.core.frame.DataFrame'&gt;)&#10; +    where &lt;class 'pandas.core.frame.DataFrame'&gt; = pd.DataFrame">percentile = 0.9
+
+        select percentile_cont({percentile}) within group (order by trip_distance)
+        from test
+        )""",mode='query')
+        assert isinstance(df,pd.DataFrame), "Error querying percentiles"
+    
+    #%% Run tests
+    if __name__ == "__main__":
+&gt;       test_save()
+E       AssertionError: Error querying percentiles
+E       assert False
+E        +  where False = isinstance(None, &lt;class 'pandas.core.frame.DataFrame'&gt;)
+E        +    where &lt;class 'pandas.core.frame.DataFrame'&gt; = pd.DataFrame
+
+test/test_functions.py:71: AssertionError</failure></testcase></testsuite></testsuites>

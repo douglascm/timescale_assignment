@@ -1,18 +1,24 @@
+#%%
+import urllib.request as urllib
+import os
 import pandas as pd
-from pyspark.sql import SparkSession
 import pyspark.sql.functions as psf
-from src.main import write,query,save
+from pyspark.sql import SparkSession
+from src.main import save, write, query
+
+global spark
+
+spark = SparkSession.builder \
+    .master("local") \
+    .appName("load_parquet") \
+    .config("spark.jars", "/opt/spark/jars/postgresql-42.2.5.jar") \
+    .getOrCreate()
+
+def test_save(url='https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet',filename='/app/test/files/test.parquet'):
+    save(url,filename)
+    assert os.path.isfile(filename), "Error saving file"
 
 def test_write(write_method='psycopg2'):
-    if spark == None:
-        # Startup spark session
-        spark = SparkSession.builder \
-            .master("local") \
-            .appName("load_parquet") \
-            .config("spark.jars", "/opt/spark/jars/postgresql-42.2.5.jar") \
-            .getOrCreate()
-        
-    save('https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet', 'test/files/test.parquet')
 
     table_create_sql = f'''
         CREATE TABLE IF NOT EXISTS test (
@@ -46,10 +52,26 @@ def test_write(write_method='psycopg2'):
     if 'filename' not in df.columns:
         df = df.withColumn('filename',psf.lit('23-01'))
 
-    write('test','test',write_method)
-    df = query("select * from test LIMIT 100;",mode='query')
-    assert isinstance(df,pd.Dataframe), "Error writing file"
+    res = write('test','test',write_method)
+    assert res, "Error writing file"
     
+def test_query(sql="select count(*) from test",mode='execute'):
+    df = query(sql,mode)
+    assert isinstance(df,pd.DataFrame), "Error querying file"
+
+def test_percentile(percentile=0.9):
+    df = query(f"""
+    select * from test ytt
+    where trip_distance >= (
+    select percentile_cont({percentile}) within group (order by trip_distance) 
+    from test
+    )""",mode='query')
+    assert isinstance(df,pd.DataFrame), "Error querying percentiles"
+
+#%% Run tests
 if __name__ == "__main__":
+    test_save()
     test_write()
+    test_query()
+    test_percentile()
     print("Everything passed")

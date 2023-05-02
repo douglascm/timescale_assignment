@@ -1,5 +1,15 @@
 version: '3'                                                                                       
 services:
+  db:
+    image: timescale/timescaledb-ha:pg14-latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=example
+    networks:
+      - myNetwork
   app:
     container_name: timecale_assignment
     image: timecale_assignment:latest
@@ -15,16 +25,22 @@ services:
     volumes:
       - ./:/app
     env_file: .env
-  db:
-    image: timescale/timescaledb-ha:pg14-latest
+  app-tests:
+    container_name: timecale_assignment_test
+    image: timecale_assignment_test:latest
+    build:
+      context: .
+      dockerfile: Dockerfile-test
     ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=example
+      - 8001:8001
+    depends_on:
+      - db
+      - app
     networks:
       - myNetwork
+    volumes:
+      - ./:/app
+    env_file: .env
 networks:
   myNetwork:
     driver: bridge
