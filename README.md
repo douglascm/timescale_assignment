@@ -44,7 +44,6 @@ solution for the project.
 	    rebase = false
     ```
     * Run `git clone git@github.com:douglascm/timescale_assignment.git .`
-    * Run `git push -u origin <default-branch>`
 
 ## Development with VScode and devcontainer.json
 
