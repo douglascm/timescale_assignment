@@ -193,15 +193,21 @@ app-tests:
     env_file: .env
 ```
 
+### Pytest output
+
+```
+
+```
+
 ## Final Notes
 
 I started the project cloning the [getting-started](https://github.com/docker/getting-started.git) from docker to setup files faster but ended up with excessive amounts of commits and unecessary files. File which I had to remove later.
 
-Test runs of 2 years periods, 2021-2022 completed under 30 minutes, showing satisfactory performance.
+Test runs of 2 years periods, 2021-2022 completed under 30 minutes, showing satisfactory performance. Estimated performance for the entire dataset being in the range of 4-6 hours (local setup).
 
 ## Closing Comments
 
-I found interesting trying different methods of read/write to improve performance and stability.
+I was thankful for being given the opportunity to participate in this assignment.
 
 
 

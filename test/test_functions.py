@@ -56,8 +56,8 @@ def test_write(write_method='psycopg2'):
 
     assert res=='Success', "Error writing file"
     
-def test_query(sql="select * from test",mode='query'):
-    df = query(sql,mode)
+def test_query(sql="select * from test LIMIT 10000",mode='query'):
+    df = query(sql,mode,autocommit=True)
     
     assert isinstance(df,pd.DataFrame), "Error querying table tests"
 
@@ -67,7 +67,7 @@ def test_percentile(percentile=0.9):
     where trip_distance >= (
     select percentile_cont({percentile}) within group (order by trip_distance) 
     from test
-    )""",mode='query')
+    )""",mode='query',autocommit=True)
     
     assert isinstance(df,pd.DataFrame), "Error querying percentiles"
 

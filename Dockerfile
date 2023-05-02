@@ -29,5 +29,5 @@ COPY . .
 EXPOSE 8000
 EXPOSE 5432
 
-#CMD ["python3", "/app/src/main.py"]
+CMD ["python3", "/app/src/main.py"]
 

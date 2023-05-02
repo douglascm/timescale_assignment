@@ -7,7 +7,6 @@ import time
 import psycopg2
 import pandas as pd
 import pyspark.sql.functions as psf
-from tabulate import tabulate
 from pyspark.sql import SparkSession
 
 def delete_indexes(table_name):
@@ -141,8 +140,8 @@ def query(sql,mode='execute',autocommit=False):
             df = print('Query executed successfully...')
     except Exception as err:
         df = print_psycopg2_exception(err)
-    pg_conn.commit()
     cur.close()
+    pg_conn.close()
     return df
 
 def ask_range():
