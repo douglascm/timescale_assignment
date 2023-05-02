@@ -7,7 +7,7 @@ solution for the project.
 
 ## Getting Started
 
-### Prerequisite
+### Cloning the repository to your repository
 
 * Install Python
 * [Install git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
