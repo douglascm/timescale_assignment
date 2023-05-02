@@ -294,7 +294,7 @@ for i, t in enumerate(zip(ycabUrls,ycabFnames)):
     
 print("Upload duration: {} seconds".format(time.time() - start_time_upload))
 
-# Creates index for assignment tasks, after bulk loading
+#%% Creates index for assignment tasks, after bulk loading
 print(f'Creating index ix_fname on table test.{taxy_table}')
 query("CREATE INDEX IF NOT EXISTS ix_fname ON yellow_taxi_trips (filename);")
 print(f'Creating index ix_trip_distance on table test.{taxy_table}')
@@ -304,7 +304,7 @@ query("CREATE INDEX IF NOT EXISTS ix_trip_location ON yellow_taxi_trips (pulocat
 print(f'Creating index ix_passenger_count_fare_amount_pulocationid on table test.{taxy_table}')
 query("CREATE INDEX IF NOT EXISTS ix_passenger_count_fare_amount_pulocationid ON yellow_taxi_trips (passenger_count, fare_amount, pulocationid);")
 
-#%% Return all the trips over 0.9 percentile in the distance traveled, limiting query since amount is 40m+ lines for the entire dataset
+# Return all the trips over 0.9 percentile in the distance traveled, limiting query since amount is 40m+ lines for the entire dataset
 print(f'Return all the trips over 0.9 percentile in the distance traveled')
 df = query("""
     select * from yellow_taxi_trips ytt

@@ -1,6 +1,6 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
-FROM apache/spark-py
+FROM apache/spark-py as base
 
 LABEL maintainer="Douglas Martins <douglas.capelossi@gmail.com>"
 USER root
@@ -26,8 +26,14 @@ WORKDIR /app
 
 COPY . . 
 
+FROM base as test
+
+CMD ["pytest", "/app/test"]
+
+FROM base as production
+
 EXPOSE 8000
 EXPOSE 5432
 
-CMD ["python3", "/app/src/main.py"]
+#CMD ["python3", "/app/src/main.py"]
 
