@@ -57,8 +57,13 @@ We can use Dockerfile for building our development environment as well as our pr
 Navigate to project folder and run `code .` opening vscode. 
 
 ### Create the image locally and run
-Run `docker-compose build --no-cache` and `docker-compose -p timescale_assignment up --build` on the current project folder. The project will start running. 
+Run `docker-compose build --no-cache`.
+
+Run `docker-compose -p timescale_assignment up --build` on the current project folder. The project will start running. 
+
 Run `docker run -it --entrypoint=/bin/bash timescale_assignment` to navigate files in the continer.
+
+Run `docker build -t timescale_assignment --target test .` to build the testing container for unit function tests.
 
 ## Project Layout
 
@@ -171,14 +176,16 @@ By following these steps, I would set up a solution that allows me to upload dat
 
 Testing is supplied for the main functionalities of the project, as well as an integration test of the main script for a sample of six months. The files are:
 
-* test_percentile: tests the percentile query for the desired amount.
-* test_query: tests the hability to connect to the timescale db and return results from the cursor.
+* test_percentile.py: tests the percentile query for the desired amount.
+* test_query.py: tests the hability to connect to the timescale db and return results from the cursor.
 * test_save.py: tests the download of a file from the an URL
 * test_write.py: tests the method to push data into the timescale database. It pushes data into the test table, truncating it before.
 
 ## Final Notes
 
 I started the project cloning the [getting-started](https://github.com/docker/getting-started.git) from docker to setup files faster but ended up with excessive amounts of commits and unecessary files. File which I had to remove later.
+
+Test runs of 2 years periods, 2021-2022 completed under 30 minutes, showing satisfactory performance.
 
 ## Closing Comments
 
