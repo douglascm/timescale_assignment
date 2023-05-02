@@ -10,6 +10,11 @@ services:
       - POSTGRES_DB=example
     networks:
       - myNetwork
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   app:
     container_name: timecale_assignment
     image: timecale_assignment:latest
@@ -19,7 +24,8 @@ services:
     ports:
       - 8000:8000
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - myNetwork
     volumes:
@@ -34,7 +40,6 @@ services:
     ports:
       - 8001:8001
     depends_on:
-      - db
       - app
     networks:
       - myNetwork

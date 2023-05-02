@@ -6,3 +6,4 @@ test/__pycache__/
 test/files/
 test/reports
 result.log
+reports/
