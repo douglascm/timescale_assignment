@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="1.437" timestamp="2023-05-02T15:09:26.719916" hostname="3bc12a175276"><testcase classname="" name="test_functions" time="0.000"><error message="collection failure">ImportError while importing test module '/app/test/test_functions.py'.
-Hint: make sure your test modules/packages have valid Python names.
-Traceback:
-/usr/lib/python3.10/importlib/__init__.py:126: in import_module
-    return _bootstrap._gcd_import(name[level:], package, level)
-test_functions.py:7: in &lt;module&gt;
-    from src.main import save, write, query
-E   ModuleNotFoundError: No module named 'src'</error></testcase></testsuite></testsuites>

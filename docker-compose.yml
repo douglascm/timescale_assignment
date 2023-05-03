@@ -16,8 +16,8 @@ services:
       timeout: 5s
       retries: 5
   app:
-    container_name: timecale_assignment
-    image: timecale_assignment:latest
+    container_name: timescale_assignment
+    image: timescale_assignment:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -32,8 +32,8 @@ services:
       - ./:/app
     env_file: .env
   app-tests:
-    container_name: timecale_assignment_test
-    image: timecale_assignment_test:latest
+    container_name: timescale_assignment_test
+    image: timescale_assignment_test:latest
     build:
       context: .
       dockerfile: Dockerfile-test

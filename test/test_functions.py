@@ -4,7 +4,8 @@ import os
 import pandas as pd
 import pyspark.sql.functions as psf
 from pyspark.sql import SparkSession
-from src.main import save, write, query
+from src.functions import save, write, query
+import pytest
 
 global spark
 
@@ -14,11 +15,21 @@ spark = SparkSession.builder \
     .config("spark.jars", "/opt/spark/jars/postgresql-42.2.5.jar") \
     .getOrCreate()
 
-def test_save(url='https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2022-12.parquet',filename='/app/test/files/test.parquet'):
-    save(url,filename)
-    assert os.path.isfile(filename), "Error saving file"
+@pytest.fixture(scope='session')
+def cache_dir(request):
+    temp_dir = py.path.local(tempfile.mkdtemp())
+    request.addfinalizer(lambda: folder.remove(rec=1))
+    return temp_dir
+
+def test_save(url='https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet',filename=cache_dir):
+    print(cache_dir)
+    assert save(url,filename), "Error saving file"
 
 def test_write(write_method='psycopg2'):
+
+    df = spark.read.parquet(cache_dir)
+    if 'filename' not in df.columns:
+        df = df.withColumn('filename',psf.lit('20-03'))
 
     table_create_sql = f'''
         CREATE TABLE IF NOT EXISTS test (
@@ -47,10 +58,6 @@ def test_write(write_method='psycopg2'):
     
     query(table_create_sql)
     query("truncate table test;")
-
-    df = spark.read.parquet('test/files/test.parquet')
-    if 'filename' not in df.columns:
-        df = df.withColumn('filename',psf.lit('23-01'))
     
     res = write('test',df,write_method)
 
@@ -62,6 +69,7 @@ def test_query(sql="select * from test LIMIT 10000",mode='query'):
     assert isinstance(df,pd.DataFrame), "Error querying table tests"
 
 def test_percentile(percentile=0.9):
+    query("CREATE INDEX IF NOT EXISTS ix_trip_distance ON test (trip_distance);")
     df = query(f"""
     select * from test ytt
     where trip_distance >= (
@@ -73,8 +81,10 @@ def test_percentile(percentile=0.9):
 
 #%% Run tests
 if __name__ == "__main__":
+    print(cache_dir)
     test_save()
     test_write()
     test_query()
     test_percentile()
     print("Everything passed")
+# %%

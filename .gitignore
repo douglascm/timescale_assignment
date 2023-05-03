@@ -1,9 +1,8 @@
 node_modules
-app/src/files/
-app/src/upload_test_data_from_copy.csv
 src/__pycache__/
 test/__pycache__/
-test/files/
-test/reports
+test/reports/
+src/files/
 result.log
 reports/
+.vscode/
