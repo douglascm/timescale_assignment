@@ -50,13 +50,18 @@ def print_psycopg2_exception(err):
     print ("pgcode:", err.pgcode, "\n")
 
 def execute_copy(fileName,table_name,conn_string):
-    con = psycopg2.connect(conn_string)
-    cur = con.cursor()
-    with open(fileName, 'r') as f:
-        cur.copy_from(f, table_name, sep=',', null='')    
-    con.commit()
-    cur.close()
-    con.close()
+    try:
+        con = psycopg2.connect(conn_string)
+        cur = con.cursor()
+        with open(fileName, 'r') as f:
+            cur.copy_from(f, table_name, sep=',', null='')    
+        con.commit()
+        cur.close()
+        con.close()
+        return True
+    except:
+        print('Query failed...')
+        return False
     
 def reporthook(count, block_size, total_size):
     global start_time

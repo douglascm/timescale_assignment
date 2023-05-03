@@ -4,7 +4,7 @@ import os
 import pandas as pd
 import pyspark.sql.functions as psf
 from pyspark.sql import SparkSession
-from src.functions import save, write, query
+from src.functions import save, query, execute_copy
 import pytest
 
 global spark
@@ -20,17 +20,17 @@ def cache_dir(tmp_path_factory):
    #creates a context
    with tmp_path_factory.mktemp("files") as f:
        #yields the file path, holds the context open
-       yield f / "test.parquet"
+       yield f
 
 def test_save(cache_dir):
     url='https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet'
-    save(url,cache_dir)
-    assert os.path.isfile(cache_dir), "Error saving file"
+    assert save(url,cache_dir / "test.parquet"), "Error saving file"
 
-def test_write(cache_dir):
-    df = pd.read_parquet(cache_dir, engine='pyarrow')
+def test_execute_copy(cache_dir):
+    df = pd.read_parquet(cache_dir / "test.parquet", engine='pyarrow')
     if 'filename' not in df.columns:
         df['filename'] = '20-03'
+    df.to_csv(cache_dir / "test.csv",index=False, header=False)
 
     table_create_sql = f'''
         CREATE TABLE IF NOT EXISTS test (
@@ -60,9 +60,7 @@ def test_write(cache_dir):
     query(table_create_sql)
     query("truncate table test;")
     
-    res = write('test',df,'psycopg2')
-
-    assert res=='Success', "Error writing file"
+    assert execute_copy(cache_dir / "test.csv",'test',os.environ.get('PSYCOPG2_JDBC_URL')), "Error writing file"
     
 def test_query(sql="select * from test LIMIT 10000",mode='query'):
     df = query(sql,mode,autocommit=True)
@@ -84,7 +82,7 @@ def test_percentile(percentile=0.9):
 if __name__ == "__main__":
     print(cache_dir)
     test_save()
-    test_write()
+    test_execute_copy()
     test_query()
     test_percentile()
     print("Everything passed")
