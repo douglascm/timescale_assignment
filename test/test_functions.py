@@ -16,7 +16,7 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 @pytest.fixture(scope="session")
-def image_file(tmp_path_factory):
+def cache_dir(tmp_path_factory):
     return tmp_path_factory.mktemp("files") / "test.parquet"
 
 def test_save(url='https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet',filename=cache_dir):
