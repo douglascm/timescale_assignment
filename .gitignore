@@ -7,3 +7,4 @@ test/files/
 test/reports
 result.log
 reports/
+.vscode/

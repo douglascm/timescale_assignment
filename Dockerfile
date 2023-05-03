@@ -29,8 +29,5 @@ COPY . .
 EXPOSE 8000
 EXPOSE 5432
 
-HEALTHCHECK --interval=5m --timeout=3s \
-  CMD curl -f http://host.docker.internal/ || exit 1
-
 CMD ["python3", "/app/src/main.py"]
 
