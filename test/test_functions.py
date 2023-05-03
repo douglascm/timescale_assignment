@@ -15,11 +15,9 @@ spark = SparkSession.builder \
     .config("spark.jars", "/opt/spark/jars/postgresql-42.2.5.jar") \
     .getOrCreate()
 
-@pytest.fixture(scope='session')
-def cache_dir(request):
-    temp_dir = py.path.local(tempfile.mkdtemp())
-    request.addfinalizer(lambda: folder.remove(rec=1))
-    return temp_dir
+@pytest.fixture(scope="session")
+def image_file(tmp_path_factory):
+    return tmp_path_factory.mktemp("files") / "test.parquet"
 
 def test_save(url='https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet',filename=cache_dir):
     print(cache_dir)
