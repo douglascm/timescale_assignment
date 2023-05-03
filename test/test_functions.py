@@ -17,17 +17,20 @@ spark = SparkSession.builder \
 
 @pytest.fixture(scope="session")
 def cache_dir(tmp_path_factory):
-    return tmp_path_factory.mktemp("files") / "test.parquet"
+   #creates a context
+   with tmp_path_factory.mktemp("files") as f:
+       #yields the file path, holds the context open
+       yield f / "test.parquet"
 
-def test_save(url='https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet',filename=cache_dir):
-    print(cache_dir)
-    assert save(url,filename), "Error saving file"
+def test_save(cache_dir):
+    url='https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2023-01.parquet'
+    save(url,cache_dir)
+    assert os.path.isfile(cache_dir), "Error saving file"
 
-def test_write(write_method='psycopg2'):
-
-    df = spark.read.parquet(cache_dir)
+def test_write(cache_dir):
+    df = pd.read_parquet(cache_dir, engine='pyarrow')
     if 'filename' not in df.columns:
-        df = df.withColumn('filename',psf.lit('20-03'))
+        df['filename'] = '20-03'
 
     table_create_sql = f'''
         CREATE TABLE IF NOT EXISTS test (
@@ -57,7 +60,7 @@ def test_write(write_method='psycopg2'):
     query(table_create_sql)
     query("truncate table test;")
     
-    res = write('test',df,write_method)
+    res = write('test',df,'psycopg2')
 
     assert res=='Success', "Error writing file"
     
