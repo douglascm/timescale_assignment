@@ -104,7 +104,8 @@ def run_code(start_year,end_year,del_index,write_db_method):
 
     logger.info(f'Querying files already imported into db...')
     fnames = query(f"select distinct filename from {taxy_table}",mode='query').filename.values
-    logger.info(f'Files already imported into db: {fnames}')
+    logger.info(f'Files already imported into db:')
+    logger.info(f'{fnames}')
 
     start_time_upload = time.time()
 
@@ -122,6 +123,7 @@ def run_code(start_year,end_year,del_index,write_db_method):
                     df = df.withColumn('filename',psf.lit(link[-13:-8]))
                     
                 if link[-13:-8] in fnames and write_db_method=='Replace':
+                    logger.info('Deleting data from file ['+ link[-13:-8] + '] from the database...')
                     query(f"delete from {taxy_table} where filename='{link[-13:-8]}';")
                     
                 # Function that writes to db
@@ -148,17 +150,6 @@ def run_code(start_year,end_year,del_index,write_db_method):
     logger.info(f'Creating index ix_passenger_count_fare_amount_pulocationid on table test.{taxy_table}')
     query("CREATE INDEX IF NOT EXISTS ix_passenger_count_fare_amount_pulocationid ON yellow_taxi_trips (passenger_count, fare_amount, pulocationid);")
 
-    # Return all the trips over 0.9 percentile in the distance traveled, limiting query since amount is 40m+ lines for the entire dataset
-    logger.info(f'Return all the trips over 0.9 percentile in the distance traveled')
-    df = query("""
-        select * from yellow_taxi_trips ytt
-        where trip_distance >= (
-            select percentile_cont(0.9) within group (order by trip_distance) 
-            from yellow_taxi_trips
-        ) LIMIT 1000000
-        """,mode='query')
-    logger.info(df.head(50).to_string())
-
     #%% Aggregate that rolls up stats on passenger count and fare amount by pickup location. Leverages created indexes.
     query("""
         CREATE MATERIALIZED VIEW IF NOT EXISTS yellow_taxi_trips_pickup_loc
@@ -174,7 +165,7 @@ def run_code(start_year,end_year,del_index,write_db_method):
         FROM yellow_taxi_trips ytt
         GROUP BY pulocationid, bucket WITH DATA;
         """,autocommit=True)
-
+    
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -185,16 +176,32 @@ def index():
         input_4 = request.form.get('input_4')
         
         # Call function to run code with user inputs
-        output = run_code(input_1, input_2, input_3, input_4)
+        run_code(input_1, input_2, input_3, input_4)
 
-        with open('logger.log', 'r') as fin:
-            output = fin.read()
         
+
         # Return output to user
-        return render_template('index.html', output=print(f"{output}"))
+        return render_template('index.html')
     else:
         # Render form for user inputs
         return render_template('index.html')
+
+@app.route('/table')
+def showData():
+    try:
+        # Return all the trips over 0.9 percentile in the distance traveled, limiting query since amount is 40m+ lines for the entire dataset
+        logger.info(f'Return all the trips over 0.9 percentile in the distance traveled')
+        df = query("""
+        select * from yellow_taxi_trips ytt
+        where trip_distance >= (
+            select percentile_cont(0.9) within group (order by trip_distance) 
+            from yellow_taxi_trips
+        ) LIMIT 1000
+        """,mode='query')
+        logger.info(df.head(50).to_string(max_cols=5))
+        return render_template('table.html',data_var=df.to_html())
+    except:
+        return render_template('index2.html')
 
 @app.route("/log_stream", methods=["GET"])
 def log_stream():
