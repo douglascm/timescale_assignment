@@ -43,7 +43,9 @@ Run `docker run -it --entrypoint=/bin/bash timescale_assignment_flask` to naviga
 
 Navigate to `localhost:5000` on your web browser to access the application.
 
-![Screenshot](docs/images/flask_app.JPG)
+## Flask App
+
+![Screenshot](docs/images/flask_app.PNG)
 
 ## Project Layout
 
