@@ -196,7 +196,7 @@ def showData():
         select * from yellow_taxi_trips ytt
         where trip_distance >= (
             select percentile_cont(0.9) within group (order by trip_distance) 
-            from yellow_taxi_tsrips
+            from yellow_taxi_trips
         ) LIMIT 1000
         """,mode='query')
         logger.info(df.head(50).to_string(max_cols=5))
