@@ -39,7 +39,11 @@ Run `docker-compose build --no-cache`.
 
 Run `docker-compose -p timescale_assignment up --build` on the current project folder. The project tests will start running, then the app itself. 
 
-Run `docker run -it --entrypoint=/bin/bash timescale_assignment` to navigate files in the container.
+Run `docker run -it --entrypoint=/bin/bash timescale_assignment_flask` to navigate files in the container.
+
+Navigate to `localhost:5000` on your web browser to access the application.
+
+![Screenshot](docs/images/flask_app.JPG)
 
 ## Project Layout
 
@@ -48,20 +52,28 @@ Run `docker run -it --entrypoint=/bin/bash timescale_assignment` to navigate fil
     devcontainer.json
 src
     files
+    static
+    templates
+      index.html
     main.py
     ___init.py
+    api.py
+    functions.py
 test
     files
     test_functions.py
+    ___init.py
 .dockerignore
 .gitignore
 build.sh
 docker-compose.yml
 Dockerfile
 Dockerfile-test
+Dockerfile-flask
 LICENSE
 README.md
 requirements.txt
+requirements-flask.txt
 ```
 
 A description of each noteworthy file:
@@ -69,10 +81,14 @@ A description of each noteworthy file:
 * `devcontainer.json`: contains instructions for building the containers
 * `docker-compose.yml`: contains instructions for mounting volumes, setting up a shared network, building services (Dockerfiles, ports, dependencies, and env variables). The timescale docker image is set up on the db service, it uses the `timescale/timescaledb-ha:pg14-latest` image.
 * `requirements.txt`: contains the addon packages required for the project, read by pip on the image build step.
+* `requirements-flask.txt`: contains the addon packages required for the project in flask, read by pip on the image build step.
+* `index.html`: contains HTML template for flask
 * `Dockerfile`: contains build instructions for docker to create a custom image with requirements (requirements.txt)
 * `Dockerfile-test`: contains build instructions for docker to create a custom image with requirements (requirements.txt) for pytest environment
+* `Dockerfile-flask`: contains build instructions for docker to create a custom image with requirements (requirements-flask.txt) for `localhost:5000` flask server
 * `text_functions.py`: contains the code for `pytest` functionality tests
-* `main.py`: contains the code for the project, detailed below
+* `main.py`: contains the code for the project
+* `api.py`: contains the modified `main.py` code to run in flask, detailed below
 
 ## Main.py
 
@@ -84,9 +100,7 @@ A for loop is implemented to go through all files in the NYC taxi database. The 
 
 ### Writing into timescale db
 
-In each of the for loops when a .csv file is created, psycopg2 can leverage the COPY functionality for one the fastest ways to push data into timescaledb, about 3-5x faster than sparks own postgresql writing capabilities. Hypertables do not support `SET UNLOGGED` and `DISABLE TRIGGER ALL` for faster table insertion. 
-
-There is an option to skip or replace already imported files. The parameter is `write_db_method` set as default for 'Skip' for this assignment. For dev container purposes there is also an `input_mode` boolean that changes the years import range, `write_db_method`, described before, or whether to remove indexes before uploading data to table, parameter `del_index`, only working in `input_mode=True`.
+In each of the for loops when a .csv file is created, psycopg2 can leverage the COPY functionality for one the fastest ways to push data into timescaledb, about 3-5x faster than sparks own postgresql writing capabilities. There is an option to skip or replace already imported files, as deleting indexes prior to insertion.
 
 ### Setting up indexes, hypertables
 
@@ -168,8 +182,7 @@ app-test:
     ports:
       - 8001:8001
     depends_on:
-      - db
-      - app <waits for app to built first>
+      - app-flask <waits for app to built first>
     networks:
       - myNetwork
     volumes:
@@ -188,7 +201,7 @@ plugins: reportlog-0.3.0
 collecting ... collected 4 items
 
 test/test_functions.py::test_save PASSED                                 [ 25%]
-test/test_functions.py::test_write PASSED                                [ 50%]
+test/test_functions.py::test_execute_copy PASSED                         [ 50%]
 test/test_functions.py::test_query PASSED                                [ 75%]
 test/test_functions.py::test_percentile PASSED                           [100%]
 
@@ -201,7 +214,7 @@ test/test_functions.py::test_percentile PASSED                           [100%]
 
 I started the project cloning the [getting-started](https://github.com/docker/getting-started.git) from docker to set up files faster but ended up with excessive amounts of commits and unnecessary files. File which I had to remove later.
 
-Test runs of 3 years periods, 2020-2022 completed under 1h, showing satisfactory performance. Estimated performance for the entire dataset is in the range of 4-6 hours (local setup). In order to change the import from as early as 2009 it only requires to change `years=[2020,2023]` into `years=[2009,2023]` in the main.py file.
+Test runs of 3 years periods, 2020-2022 completed under 1h, showing satisfactory performance. Estimated performance for the entire dataset is in the range of 4-6 hours (local setup).
 
 ## Closing Comments
 

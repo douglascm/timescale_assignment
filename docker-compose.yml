@@ -15,22 +15,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  app:
-    container_name: timescale_assignment
-    image: timescale_assignment:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - 8000:8000
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - myNetwork
-    volumes:
-      - ./:/app
-    env_file: .env
+  app-flask:
+      container_name: timescale_assignment_flask
+      image: timescale_assignment_flask:latest
+      build:
+        context: .
+        dockerfile: Dockerfile-flask
+      ports:
+        - 5000:5000
+      depends_on:
+        db:
+          condition: service_healthy
+      networks:
+        - myNetwork
+      volumes:
+        - ./:/app
+      env_file: .env
   app-tests:
     container_name: timescale_assignment_test
     image: timescale_assignment_test:latest
@@ -40,7 +40,7 @@ services:
     ports:
       - 8001:8001
     depends_on:
-      - app
+      - app-flask
     networks:
       - myNetwork
     volumes:

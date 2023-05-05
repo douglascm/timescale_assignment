@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" type=text/css href="{{ url_for('static', filename='css/custom.css')}}">
+    <title>Simple Flask App to import NYC Taxi data</title>
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script>
+      $(document).ready(function(){
+        var output = document.getElementById('output');
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '{{ url_for('log_stream') }}', true);
+        xhr.send();
+        setInterval(function() {
+          output.textContent = xhr.responseText;
+        }, 500);
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Simple Flask App to import NYC Taxi data</h1>
+    <h2>Enter Inputs</h2>
+    <form method="POST" action="/">
+      <script type="text/javascript">
+        function dropdown_set (i,min=2013,max=2023) {
+          document.getElementById(i).innerHTML = null
+          let dateDropdown = document.getElementById(i)
+          let currentYear = new Date().getFullYear();
+          let earliestYear = min;
+          let latemostYear = max;
+      
+          while (currentYear >= earliestYear & currentYear <= latemostYear) {
+            let dateOption = document.createElement('option');
+            dateOption.text = currentYear;
+            dateOption.value = currentYear;
+            dateDropdown.add(dateOption);
+            currentYear -= 1;
+          }
+        }
+      </script>
+      <label for="input_1">Start Year:</label>
+      <select id="input_1" name="input_1" onchange="dropdown_set('input_2',min=this.value);" required></select><br><br>
+      <label for="input_2">End Year:</label>
+      <select id="input_2" name="input_2" required></select><br>
+      <script>
+        dropdown_set('input_1')
+        dropdown_set('input_2')
+      </script>
+      <p>Delete Indexes from table?:</p>
+      <input type="radio" id="input_3_1" name="input_3_1" value="Yes">
+      <label for="input_3_1">Yes</label><br>
+      <input type="radio" id="input_3_2" name="input_3_2" checked="checked" value="No">
+      <label for="input_3_2">No</label><br>
+      <p>Replace data from table?:</p>
+      <input type="radio" id="input_4_1" name="input_4_1" value="Replace">
+      <label for="input_4_1">Yes</label><br>
+      <input type="radio" id="input_4_2" name="input_4_2" checked="checked" value="Skip">
+      <label for="input_4_2">No</label><br>
+      <br>
+      <input type="submit" value="Run ETL" style="height:50px;width:200px"><br>
+    </form>
+    <body id="main">
+
+      <div class="row">
+        <h2>Logging:</h2>
+        <div class="logging_window">
+          <pre id="output"></pre>
+        </div>
+      </div>
+    </body>
+  </body>
+</html>

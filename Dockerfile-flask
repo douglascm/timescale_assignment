@@ -8,8 +8,8 @@ USER root
 RUN wget https://jdbc.postgresql.org/download/postgresql-42.2.5.jar
 RUN mv postgresql-42.2.5.jar /opt/spark/jars
 
-COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+COPY requirements-flask.txt .
+RUN pip3 install -r requirements-flask.txt
 
 ADD . /opt/spark/jars
 
@@ -18,14 +18,18 @@ ENV CLASSPATH /opt/spark/jars/postgresql-42.2.5.jar
 
 # SET PYSPARK VARIABLES
 ENV PYTHONPATH="${SPARK_HOME}/python/:$PYTHONPATH"
-ENV PYTHONSTARTUP=main.py
+ENV PYTHONSTARTUP=api.py
+ENV FLASK_APP=api.py
 
-ADD /src/main.py .
+ADD /src/api.py .
 
 WORKDIR /app
 
+COPY /src/api.py /app
+
 COPY . . 
 
-EXPOSE 8001
+EXPOSE 5000
 
-CMD ["pytest", "-v", "/app/test", "--junitxml=reports/result.xml", "--report-log=result.log"]
+CMD ["python3","/app/src/api.py"]
+
