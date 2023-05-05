@@ -9,18 +9,17 @@ import pandas as pd
 import pyspark.sql.functions as psf
 from pyspark.sql import SparkSession
 from functions import delete_indexes, save, write, query, ask_range
-from flask import Flask, request, render_template, jsonify, Response
+from flask import Flask, request, render_template, jsonify, Response, stream_with_context
 from loguru import logger
 
 app = Flask(__name__)
 logger.add("job.log", format="{time} - {message}")
-with open('job.log', 'w'):
-    pass
 
 def flask_logger():
     with open("job.log") as log_info:
         data = log_info.read()
         yield data.encode()
+        time.slee(1)
 
 def run_code(start_year,end_year,del_index,write_db_method):
     #%% Configure logger
@@ -170,6 +169,9 @@ def run_code(start_year,end_year,del_index,write_db_method):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
+        with open('job.log', 'w'):
+            pass
+
         # Retrieve user inputs from form submission
         input_1 = request.form['input_1']
         input_2 = request.form['input_2']
@@ -207,6 +209,6 @@ def showData():
 def log_stream():
     """returns logging information"""
     return Response(flask_logger(), mimetype="text/plain", content_type="text/event-stream")
-
+    
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

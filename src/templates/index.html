@@ -12,7 +12,7 @@
         xhr.send();
         setInterval(function() {
           output.textContent = xhr.responseText;
-        }, 50);
+        }, 500);
       });
     </script>
   </head>
@@ -67,6 +67,8 @@
     <body id="main">
       <div class="row">
         <h3>Logging:</h3>
+        <button onclick="window.open('/log_stream','_blank')">Show Log</button>
+        <h3>Log output:</h3>
         <div class="logging_window">
           <pre id="output"></pre>
         </div>
