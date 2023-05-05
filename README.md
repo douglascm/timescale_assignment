@@ -49,20 +49,23 @@ Navigate to `localhost:5000` on your web browser to access the application.
 
 ```
 .devcontainer
-    devcontainer.json
+  devcontainer.json
 src
-    files
-    static
-    templates
-      index.html
-    main.py
-    ___init.py
-    api.py
-    functions.py
+  files
+  static
+  templates
+    index.html
+  main.py
+  ___init.py
+  api.py
+  functions.py
 test
-    files
-    test_functions.py
-    ___init.py
+  files
+  test_functions.py
+  ___init.py
+static
+  css
+    custom.css
 .dockerignore
 .gitignore
 build.sh
@@ -83,6 +86,7 @@ A description of each noteworthy file:
 * `requirements.txt`: contains the addon packages required for the project, read by pip on the image build step.
 * `requirements-flask.txt`: contains the addon packages required for the project in flask, read by pip on the image build step.
 * `index.html`: contains HTML template for flask
+* `custom.css`: contains HTML css formatting for flask
 * `Dockerfile`: contains build instructions for docker to create a custom image with requirements (requirements.txt)
 * `Dockerfile-test`: contains build instructions for docker to create a custom image with requirements (requirements.txt) for pytest environment
 * `Dockerfile-flask`: contains build instructions for docker to create a custom image with requirements (requirements-flask.txt) for `localhost:5000` flask server
@@ -190,7 +194,7 @@ app-test:
     env_file: .env
 ```
 
-### Pytest output
+### Pytest Output
 
 ```
 ============================= test session starts ==============================
