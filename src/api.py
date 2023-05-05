@@ -87,9 +87,9 @@ def run_code(start_year,end_year,del_index,write_db_method):
     '''
 
     # Creates Tables and Hypertable Definition
-    logger.info('Creating {taxy_table} on test database')
+    logger.info(f'Creating {taxy_table} on test database')
     query(table_create_sql)
-    logger.info('Creating {taxy_table} hypertable on test database')
+    logger.info(f'Creating {taxy_table} hypertable on test database')
     query(f"SELECT create_hypertable('{taxy_table}','tpep_pickup_datetime', if_not_exists => TRUE);")
 
     if del_index=='Yes':
@@ -142,17 +142,18 @@ def run_code(start_year,end_year,del_index,write_db_method):
 
     #%% Creates index for assignment tasks, after bulk loading
     logger.info(f'Creating index ix_fname on table test.{taxy_table}')
-    query("CREATE INDEX IF NOT EXISTS ix_fname ON yellow_taxi_trips (filename);")
+    query(f"CREATE INDEX IF NOT EXISTS ix_fname ON {taxy_table} (filename);")
     logger.info(f'Creating index ix_trip_distance on table test.{taxy_table}')
-    query("CREATE INDEX IF NOT EXISTS ix_trip_distance ON yellow_taxi_trips (trip_distance);")
+    query(f"CREATE INDEX IF NOT EXISTS ix_trip_distance ON {taxy_table} (trip_distance);")
     logger.info(f'Creating index ix_fnix_trip_locationame on table test.{taxy_table}')
-    query("CREATE INDEX IF NOT EXISTS ix_trip_location ON yellow_taxi_trips (pulocationid);")
+    query(f"CREATE INDEX IF NOT EXISTS ix_trip_location ON {taxy_table} (pulocationid);")
     logger.info(f'Creating index ix_passenger_count_fare_amount_pulocationid on table test.{taxy_table}')
-    query("CREATE INDEX IF NOT EXISTS ix_passenger_count_fare_amount_pulocationid ON yellow_taxi_trips (passenger_count, fare_amount, pulocationid);")
+    query(f"CREATE INDEX IF NOT EXISTS ix_passenger_count_fare_amount_pulocationid ON {taxy_table} (passenger_count, fare_amount, pulocationid);")
 
     #%% Aggregate that rolls up stats on passenger count and fare amount by pickup location. Leverages created indexes.
-    query("""
-        CREATE MATERIALIZED VIEW IF NOT EXISTS yellow_taxi_trips_pickup_loc
+    logger.info(f'Creating MATERIALIZED view test.{taxy_table}_pickup_loc on table test.{taxy_table}')
+    query(f"""
+        CREATE MATERIALIZED VIEW IF NOT EXISTS {taxy_table}_pickup_loc
         WITH (timescaledb.continuous) AS
         SELECT
             pulocationid,
@@ -162,7 +163,7 @@ def run_code(start_year,end_year,del_index,write_db_method):
             sum(fare_amount) as sum_fare,
             max(fare_amount) AS max_fare,
             min(fare_amount) AS low_fare
-        FROM yellow_taxi_trips ytt
+        FROM {taxy_table} ytt
         GROUP BY pulocationid, bucket WITH DATA;
         """,autocommit=True)
     
@@ -177,11 +178,9 @@ def index():
         
         # Call function to run code with user inputs
         run_code(input_1, input_2, input_3, input_4)
-
-        
-
+        success='ETL Ran succesfully'
         # Return output to user
-        return render_template('index.html')
+        return render_template('index.html', etl_success=success)
     else:
         # Render form for user inputs
         return render_template('index.html')
@@ -195,13 +194,14 @@ def showData():
         select * from yellow_taxi_trips ytt
         where trip_distance >= (
             select percentile_cont(0.9) within group (order by trip_distance) 
-            from yellow_taxi_trips
+            from yellow_taxi_tsrips
         ) LIMIT 1000
         """,mode='query')
         logger.info(df.head(50).to_string(max_cols=5))
         return render_template('table.html',data_var=df.to_html())
     except:
-        return render_template('index2.html')
+        error='Database not found... Run ETL first'
+        return render_template('index.html',query_error=error)
 
 @app.route("/log_stream", methods=["GET"])
 def log_stream():

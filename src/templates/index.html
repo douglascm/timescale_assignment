@@ -57,8 +57,10 @@
       <label for="input_4_2">No</label><br>
       <br>
       <input type="submit" value="Run ETL"><br>
+      <p style="color:green;"><b>{{etl_success}}</b></p>
     </form>
     <h4>Sample of 1000 rows from  all the trips over 0.9 percentile in the distance traveled:</h4>
+    <p style="color:red;"><b>{{query_error}}</b></p>
     <form action="/table" target="_blank">
       <input type="submit" value="Show Dataframe"/>
     </form>
