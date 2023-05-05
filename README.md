@@ -55,6 +55,8 @@ Navigate to `localhost:5000` on your web browser to access the application. Path
 src
   files
   static
+    index
+      custom.css
   templates
     index.html
   main.py
@@ -65,9 +67,6 @@ test
   files
   test_functions.py
   ___init.py
-static
-  css
-    custom.css
 .dockerignore
 .gitignore
 build.sh
