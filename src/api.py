@@ -21,7 +21,6 @@ def flask_logger():
     with open("job.log") as log_info:
         data = log_info.read()
         yield data.encode()
-        time.sleep(1)
 
 def run_code(start_year,end_year,del_index,write_db_method):
     #%% Configure logger

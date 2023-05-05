@@ -41,7 +41,7 @@ Run `docker-compose -p timescale_assignment up --build` on the current project f
 
 Run `docker run -it --entrypoint=/bin/bash timescale_assignment_flask` to navigate files in the container.
 
-Navigate to `localhost:5000` on your web browser to access the application.
+Navigate to `localhost:5000` on your web browser to access the application. Path `localhost:5000/log-stream` contains detailed log.
 
 ## Flask App
 
