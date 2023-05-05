@@ -8,6 +8,7 @@ import psycopg2
 import pandas as pd
 import pyspark.sql.functions as psf
 from pyspark.sql import SparkSession
+from loguru import logger
 
 def delete_indexes(table_name):
     query(f"""
@@ -92,7 +93,7 @@ def parquet2csv(df,path,filename):
             os.rename(path + subFiles,  f'{path}{filename}')
     return print(f'{filename} saved into folder{path}')
 
-def write(table,df,write_method='psycopg2',spark=None):
+def write(table,df,write_method='psycopg2',spark=None,logging=False):
     try:
         if spark == None:
             # Startup spark session
@@ -120,11 +121,13 @@ def write(table,df,write_method='psycopg2',spark=None):
             start_time = time.time()
             # Writing dataframe to csv and renaming to readeble filename
             parquet2csv(df,'/src/files/temp.dir/','yellow_taxi_trips.csv')
+            if logging: logger.info("spark write csv duration: {} seconds".format(time.time() - start_time))
             print("spark write csv duration: {} seconds".format(time.time() - start_time))
             
             start_time = time.time()
             # With Postgresql COPY command and psycopg2 data is pushed into database table yellow_taxi_trips in conn_string
             execute_copy('/src/files/temp.dir/yellow_taxi_trips.csv',table,os.environ.get('PSYCOPG2_JDBC_URL'))
+            if logging: logger.info("psycopg2 COPY duration: {} seconds".format(time.time() - start_time))
             print("psycopg2 COPY duration: {} seconds".format(time.time() - start_time))
         else: 
             print('Invalid write method.')

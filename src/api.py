@@ -114,9 +114,9 @@ def run_code(start_year,end_year,del_index,write_db_method):
         #Skips Files already Inserted
         link, filename=t[0], t[1]
         if link[-13:-8] not in fnames or write_db_method=='Replace':
-            logger.info(i, link, filename)
+            logger.info('Downloading file ' + str(i) + '-' + link + ' - into file ' + filename + '...')
             if save(link, nyc_path + '/' + filename):
-                logger.info('\n'+ nyc_path + '/' + filename)
+                print(nyc_path + '/' + filename)
                 
                 df = spark.read.parquet(nyc_path + '/' + filename)
                 if 'filename' not in df.columns:
@@ -126,15 +126,14 @@ def run_code(start_year,end_year,del_index,write_db_method):
                     query(f"delete from {taxy_table} where filename='{link[-13:-8]}';")
                     
                 # Function that writes to db
-                write(taxy_table,df,spark=spark)
+                write(taxy_table,df,spark=spark,logging=True)
             else:
                 logger.info(f'{link} File not found, moving to next on the list...')
         else:
             logger.info(f'{link} already imported into database, moving to next on the list...')
         
         # Removes temporary files
-        for file in ['/src/files/temp.dir/yellow_taxi_trips.csv'
-                    ,nyc_path + '/' + filename]:
+        for file in ['/src/files/temp.dir/yellow_taxi_trips.csv',nyc_path + '/' + filename]:
             if os.path.isfile(file):
                 os.remove(file)
         
@@ -159,7 +158,7 @@ def run_code(start_year,end_year,del_index,write_db_method):
             from yellow_taxi_trips
         ) LIMIT 1000000
         """,mode='query')
-    logger.info(df.head(50))
+    logger.info(df.head(50).to_string())
 
     #%% Aggregate that rolls up stats on passenger count and fare amount by pickup location. Leverages created indexes.
     query("""
